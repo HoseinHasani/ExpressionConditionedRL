@@ -1,20 +1,23 @@
-import gym
+import numpy as np
+import matplotlib.pyplot as plt
 from stable_baselines3 import SAC
+from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.monitor import Monitor
+import os
+from stable_baselines3.common.callbacks import EvalCallback
+import gymnasium
 
-env = gym.make('HalfCheetah-v3')
+sac_log_dir = './sac_logs/'
+os.makedirs(sac_log_dir, exist_ok=True)
 
-model = SAC('MlpPolicy', env, verbose=1)
 
-model.learn(total_timesteps=10000)
+env = make_vec_env('HalfCheetah-v4', n_envs=4, wrapper_class=lambda e: Monitor(e, sac_log_dir))
 
-model.save("sac_half_cheetah")
+sac_model = SAC('MlpPolicy', env, verbose=1, learning_rate=0.001)
+eval_env = gymnasium.make("HalfCheetah-v4")
 
-obs = env.reset()
-for _ in range(100):
-    action, _states = model.predict(obs, deterministic=True)
-    obs, reward, done, info = env.step(action)
-    env.render()
-    if done:
-        obs = env.reset()
+eval_callback_sac = EvalCallback(eval_env, best_model_save_path='./sac_logs/',
+                             log_path='./sac_logs/', eval_freq=100,
+                             deterministic=True, render=False)
+sac_model.learn(total_timesteps=10000, callback=eval_callback_sac)
 
-env.close()
