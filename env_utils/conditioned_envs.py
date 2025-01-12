@@ -8,7 +8,7 @@ class ConditionalStateWrapper(gym.ObservationWrapper):
         self.context_size = context_size
         self.context = np.zeros(context_size, dtype=np.float32)
         
-        self.trajectory_limit = trajectory_limit
+        self.buffer_size = trajectory_limit
         self.trajectory_buffer = []  
 
         obs_space = self.env.observation_space
@@ -27,17 +27,21 @@ class ConditionalStateWrapper(gym.ObservationWrapper):
         self.context = np.array(context, dtype=np.float32)
 
     def step(self, action):
-        next_obs, reward, done, info = self.env.step(action)
-
-        state = self.env.state
-        self._add_to_buffer((state, action, reward))
-
-        return self.observation(next_obs), reward, done, info
+        next_obs, reward, terminated, truncated, info = self.env.step(action)
+        done = terminated or truncated
+    
+        self.trajectory_buffer.append((self.current_obs, action, reward))
+        if len(self.trajectory_buffer) > self.buffer_size:
+            self.trajectory_buffer.pop(0)
+    
+        self.current_obs = next_obs  
+        return self.observation(next_obs), reward, terminated, truncated, info
 
     def reset(self, **kwargs):
         self.trajectory_buffer = []
-        initial_obs = self.env.reset(**kwargs)
-        return self.observation(initial_obs)
+        initial_obs, _ = self.env.reset(**kwargs)
+        self.current_obs = initial_obs
+        return self.observation(initial_obs), {}
 
     def _add_to_buffer(self, entry):
         self.trajectory_buffer.append(entry)
