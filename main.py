@@ -10,12 +10,13 @@ import gymnasium
 import os
 from envs.reacher import GoalReacherEnv
 from task_inference_utils.simple_inference import SimpleTaskInference
+from task_inference_utils.sr_inference import SymbolicRegressionInference
 
 sac_log_dir = './sac_logs/'
 os.makedirs(sac_log_dir, exist_ok=True)
 
 
-task_inference = SimpleTaskInference(context_size=7)
+task_inference = SymbolicRegressionInference(context_size=112)
 
 #env = gymnasium.make("HalfCheetah-v4") #make_vec_env('HalfCheetah-v4', n_envs=4, wrapper_class=lambda e: Monitor(e, sac_log_dir))
 env = GoalReacherEnv()
