@@ -23,7 +23,7 @@ class GoalReacherEnv(gym.Env):
         self.time = 0
         self.cur_pos = None
         self.goal_pos = None
-        self.task_vectors = self._generate_task_vectors(n_tasks) if n_tasks > 1 else [np.array([0.0, 0.0])]
+        self.task_vectors = self._generate_task_vectors(n_tasks) if n_tasks > 1 else [np.array([1.0, 0.0])]
 
         self.action_space = spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
         self.observation_space = spaces.Box(low=-1, high=1, shape=(4,), dtype=np.float32)
@@ -52,8 +52,10 @@ class GoalReacherEnv(gym.Env):
         dx, dy = self.step_length * action
         base_step = np.array([dx, dy])
         noise_step = self.step_length * np.random.normal(0, self.noise_power, 2) if self.apply_noise else np.zeros(2)
-        task_step = self.wind_power * self.step_length * self.current_task_vector
-
+        task_step = 0 #self.wind_power * self.step_length * self.current_task_vector
+        
+        if self.task_id % 2 == 1:
+            base_step = - base_step
         new_pos = self.cur_pos + base_step + task_step + noise_step
         if np.linalg.norm(new_pos) < 10.2 * self.max_pos:
             self.cur_pos = new_pos
