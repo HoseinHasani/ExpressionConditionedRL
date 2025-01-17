@@ -6,8 +6,11 @@ class SymbolicRegressionInference(BaseTaskInference):
     def __init__(self, context_size, feature_lib=None, optimizer=None):
 
         super().__init__(context_size)
-        self.feature_lib = feature_lib or ps.PolynomialLibrary(degree=2)
-        self.optimizer = optimizer or ps.STLSQ(threshold=0.1)
+        self.feature_lib = feature_lib or ps.PolynomialLibrary(degree=1, include_bias=True)
+        self.optimizer = optimizer or ps.STLSQ(threshold=0.02,
+                                     alpha=0.15,
+                                     verbose=False,
+                                     max_iter=40)
         self.state_data = []
         self.action_data = []
 
@@ -22,7 +25,7 @@ class SymbolicRegressionInference(BaseTaskInference):
 
         x_train = states[:-1]
         u_train = actions[:-1]
-        y_train = states[1:]
+        y_train = states[1:][:, :2]
         
         model = ps.SINDy(discrete_time=True, 
                          feature_library=self.feature_lib, 
@@ -32,5 +35,10 @@ class SymbolicRegressionInference(BaseTaskInference):
 
         coeffs = model.coefficients()
         flat_coeffs = np.concatenate(coeffs, axis=None).astype(np.float32)
+        
+        delta_x = x_train[-1][:2] - x_train[-2][:2]
+        delta_u = u_train[-2]
+        
+        flat_coeffs = np.dot(delta_x, delta_u) * np.ones_like(flat_coeffs)
 
         return flat_coeffs
