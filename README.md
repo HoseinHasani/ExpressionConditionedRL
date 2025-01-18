@@ -1,95 +1,77 @@
 # Expression Conditioned Reinforcement Learning
 
-This project implements a framework for **Expression Conditioned Reinforcement Learning** (ECRL), designed to adapt and perform in non-stationary environments using task inference mechanisms. The project utilizes environments such as `HalfCheetah-v4`, `Pendulum-v1`, `Swimmer-v4`, `Reacher-v4`, and `CartPole`, enabling the creation of dynamic, conditioned scenarios. The framework is built on top of **Stable-Baselines3**, leveraging its algorithms for training and evaluation.
+This project implements reinforcement learning (RL) with expression-conditioned environments, providing flexible options for environment selection, RL algorithms, and task inference methods. The framework is designed to accommodate experimentation with various RL techniques and task inference strategies.
 
 ## Features
-- **Non-Stationary Environment Wrapper**: Dynamically modifies environmental parameters such as gravity, mass, friction, or viscosity.
-- **Task Inference Modules**: Supports simple inference (`SimpleTaskInference`) and symbolic regression-based inference (`SymbolicRegressionInference`).
-- **Visualization Utilities**: Generates performance plots with moving average rewards for evaluation.
-- **Customizable via CLI**: Easily switch between environments and configurations using command-line arguments.
+- Support for multiple RL algorithms: SAC, DDPG, DQN, PPO1, and TD3.
+- Task inference via:
+  - SimpleTaskInference
+  - SymbolicRegressionInference
+  - VAEInference (placeholder for now)
+- Configurable environments: HalfCheetah-v4, Pendulum-v1, Swimmer-v4, Reacher-v4, CartPole-v1.
+- Modular codebase for customization and extension.
 
-## Requirements
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-repo/expression-conditioned-rl.git
+   cd expression-conditioned-rl
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-To get started, ensure the following dependencies are installed:
-
-- Stable-Baselines3
-- Gymnasium
-- Matplotlib
-- Pandas
-
-Install required packages via:
-
-```bash
-pip install -r requirements.txt
+## File Structure
 ```
-
-## Project Structure
-
-```plaintext
-.
-├── main.py                   # Main script to train and evaluate models
-├── env_utils                 # Contains environment wrappers and utilities
-│   ├── conditioned_envs.py   # Wrapper for conditional states
-│   └── non_stationary_env.py # Non-stationary environment implementation
-├── task_inference_utils      # Modules for task inference
-│   ├── simple_inference.py   # Simple task inference implementation
-│   ├── base_inference.py     # Simple task inference implementation
-│   └── sr_inference.py       # Symbolic regression inference implementation
-├── visualization_utils.py    # Utilities for loading data and visualization
-├── requirements.txt          # Dependency file
-└── README.md                 # Project documentation
+expression-conditioned-rl/
+├── main.py                # Entry point for training and evaluation
+├── visualization_utils.py # Utilities for loading and visualizing results
+├── task_inference_utils/  # Contains task inference methods
+│   ├── base_inference.py       # Base class for task inference
+│   ├── simple_inference.py     # Simple task inference implementation
+│   ├── sr_inference.py         # Symbolic regression-based inference
+│   ├── vae_inference.py        # VAE-based task inference (placeholder)
+├── env_utils/            # Environment wrappers and utilities
+│   ├── conditioned_envs.py
+├── envs/                 # Manual environments
+│   ├── reacher.py        # Simple GoalReacherEnv environment
+├── requirements.txt      # Dependencies
+└── README.md             # Project documentation
 ```
 
 ## Usage
+The main training script supports various configurations via command-line arguments. You can specify the environment, RL algorithm, and task inference method.
 
-### Training a Model
-Run the `main.py` script to train a reinforcement learning model. Use the `--env` argument to select the environment:
-
+### Example Commands
+#### Train with default settings (SAC and SimpleTaskInference):
 ```bash
 python main.py --env HalfCheetah-v4
 ```
 
-Other available environments:
-- `Pendulum-v1`
-- `Swimmer-v4`
-- `Reacher-v4`
-- `CartPole`
-
-### Visualizing Results
-The script automatically saves performance logs to the `./sac_logs/` directory. Use the built-in visualization tools to analyze results:
-
-```python
-from visualization_utils import load_monitor_data, plot_moving_average_reward
-
-sac_df = load_monitor_data('./sac_logs/')
-plot_moving_average_reward(sac_df, title='Performance on HalfCheetah', label='SAC', color='blue')
-```
-
-## Examples
-
-### Training with HalfCheetah-v4
+#### Train with PPO1 and SymbolicRegressionInference:
 ```bash
-python main.py --env HalfCheetah-v4
+python main.py --env Pendulum-v1 --algo PPO1 --task_inference sr
 ```
 
-### Training with Pendulum-v1
+#### Train with TD3 and VAEInference:
 ```bash
-python main.py --env Pendulum-v1
+python main.py --env Swimmer-v4 --algo TD3 --task_inference vae
 ```
 
-## Customization
+### Arguments
+- `--env`: Environment to train on. Options: `HalfCheetah-v4`, `Pendulum-v1`, `Swimmer-v4`, `Reacher-v4`, `CartPole-v1`.
+- `--algo`: RL algorithm. Options: `SAC` (default), `DDPG`, `DQN`, `PPO1`, `TD3`.
+- `--task_inference`: Task inference method. Options: `simple` (default), `sr`, `vae`.
 
-### Adding a New Environment
-To add a custom environment:
-1. Define the environment using OpenAI Gym API.
-2. Update the `NonStationaryEnv` wrapper to handle specific dynamic changes for the new environment.
-3. Register the environment in `main.py`.
+### Logs and Outputs
+Logs and models are saved to directories named based on the selected algorithm and environment (e.g., `logs/SAC_HalfCheetah-v4/`). Visualization of results is automatically generated as plots of moving average rewards.
 
-### Modifying Visualization
-Enhance or customize visualizations by editing `visualization_utils.py`.
+## Extending the Framework
+### Adding a New Task Inference Method
+1. Create a new file in the `task_inference_utils/` directory (e.g., `new_inference.py`).
+2. Implement a class that inherits from `BaseInference` and overrides necessary methods.
+3. Update `main.py` to include the new inference method in the argument parsing logic.
 
 ## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
-
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
