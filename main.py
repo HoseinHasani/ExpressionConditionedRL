@@ -16,19 +16,19 @@ sac_log_dir = './sac_logs/'
 os.makedirs(sac_log_dir, exist_ok=True)
 
 
-# task_inference = SimpleTaskInference(5) 
-task_inference = SymbolicRegressionInference(context_size=14) 
+task_inference = SimpleTaskInference(14) 
+# task_inference = SymbolicRegressionInference(context_size=14) 
 
-#env = gymnasium.make("HalfCheetah-v4") #make_vec_env('HalfCheetah-v4', n_envs=4, wrapper_class=lambda e: Monitor(e, sac_log_dir))
-env = GoalReacherEnv(disable_goal=False, max_step=250, n_tasks=2,
-                  wind_power=0.9, noise_power=0.003)
+env = gymnasium.make("HalfCheetah-v4") #make_vec_env('HalfCheetah-v4', n_envs=4, wrapper_class=lambda e: Monitor(e, sac_log_dir))
+# env = GoalReacherEnv(disable_goal=False, max_step=250, n_tasks=2,
+#                   wind_power=0.9, noise_power=0.003)
 
 env = ConditionalStateWrapper(env, task_inference=task_inference)
 
 sac_model = SAC('MlpPolicy', env, verbose=1, learning_rate=0.001)
-# eval_env = gymnasium.make("HalfCheetah-v4")
-eval_env = GoalReacherEnv(disable_goal=False, max_step=250, n_tasks=2,
-                  wind_power=0.9, noise_power=0.003)
+eval_env = gymnasium.make("HalfCheetah-v4")
+# eval_env = GoalReacherEnv(disable_goal=False, max_step=250, n_tasks=2,
+#                   wind_power=0.9, noise_power=0.003)
 
 eval_env = ConditionalStateWrapper(eval_env, task_inference=task_inference)
 eval_env = Monitor(eval_env, sac_log_dir)
