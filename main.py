@@ -1,69 +1,49 @@
-import numpy as np
+import os
+import gymnasium
+import argparse
 import pandas as pd
-import matplotlib.pyplot as plt
 from stable_baselines3 import SAC
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
-from env_utils.conditioned_envs import ConditionalStateWrapper
 from stable_baselines3.common.callbacks import EvalCallback
-import gymnasium
-import os
-from envs.reacher import GoalReacherEnv
+from env_utils.conditioned_envs import ConditionalStateWrapper
 from task_inference_utils.simple_inference import SimpleTaskInference
 from task_inference_utils.sr_inference import SymbolicRegressionInference
+from visualization_utils import load_monitor_data, plot_moving_average_reward
 
-sac_log_dir = './sac_logs/'
-os.makedirs(sac_log_dir, exist_ok=True)
+def main():
+    parser = argparse.ArgumentParser(description="Run RL experiment on different environments.")
+    parser.add_argument("--env", type=str, choices=["HalfCheetah-v4", "Pendulum-v1", "Swimmer-v4", "Reacher-v4", "cartpole"], 
+                        required=True, help="Choose the environment.")
+    args = parser.parse_args()
 
+    sac_log_dir = './sac_logs/'
+    os.makedirs(sac_log_dir, exist_ok=True)
 
-task_inference = SimpleTaskInference(14) 
-# task_inference = SymbolicRegressionInference(context_size=14) 
+    task_inference = SimpleTaskInference(14) 
+    # task_inference = SymbolicRegressionInference(context_size=14) 
 
-env = gymnasium.make("HalfCheetah-v4") #make_vec_env('HalfCheetah-v4', n_envs=4, wrapper_class=lambda e: Monitor(e, sac_log_dir))
-# env = GoalReacherEnv(disable_goal=False, max_step=250, n_tasks=2,
-#                   wind_power=0.9, noise_power=0.003)
+    # Create environment
+    env = gymnasium.make(args.env)
+    env = ConditionalStateWrapper(env, task_inference=task_inference)
 
-env = ConditionalStateWrapper(env, task_inference=task_inference)
+    sac_model = SAC('MlpPolicy', env, verbose=1, learning_rate=0.001)
 
-sac_model = SAC('MlpPolicy', env, verbose=1, learning_rate=0.001)
-eval_env = gymnasium.make("HalfCheetah-v4")
-# eval_env = GoalReacherEnv(disable_goal=False, max_step=250, n_tasks=2,
-#                   wind_power=0.9, noise_power=0.003)
+    # Evaluation environment
+    eval_env = gymnasium.make(args.env)
+    eval_env = ConditionalStateWrapper(eval_env, task_inference=task_inference)
+    eval_env = Monitor(eval_env, sac_log_dir)
 
-eval_env = ConditionalStateWrapper(eval_env, task_inference=task_inference)
-eval_env = Monitor(eval_env, sac_log_dir)
+    eval_callback_sac = EvalCallback(eval_env, best_model_save_path=sac_log_dir,
+                                     log_path=sac_log_dir, eval_freq=50,
+                                     deterministic=True, render=False)
 
-eval_callback_sac = EvalCallback(eval_env, best_model_save_path=sac_log_dir,
-                             log_path=sac_log_dir, eval_freq=50,
-                             deterministic=True, render=False)
-sac_model.learn(total_timesteps=7000, callback=eval_callback_sac)
+    # Train the model
+    sac_model.learn(total_timesteps=7000, callback=eval_callback_sac)
 
+    # Load and visualize results
+    sac_df = load_monitor_data(sac_log_dir)
+    plot_moving_average_reward(sac_df, title=f"SAC Performance on {args.env}", label='SAC', color='blue')
 
-
-
-sac_df = pd.read_csv(os.path.join(sac_log_dir, 'monitor.csv'), skiprows=1)
-print("SAC Results:")
-print(sac_df.head())
-
-
-sac_df['r'] = pd.to_numeric(sac_df['r'], errors='coerce')
-sac_df['l'] = pd.to_numeric(sac_df['l'], errors='coerce')
-sac_df['t'] = pd.to_numeric(sac_df['t'], errors='coerce')
-sac_df = sac_df.dropna()
-
-
-sac_df['moving_avg'] = sac_df['r'].rolling(window=10).mean()
-
-plt.figure(figsize=(12, 6))
-
-plt.plot(sac_df.index, sac_df['moving_avg'], label='SAC', color='blue')
-
-plt.title('SAC Performance on HalfCheetah')
-plt.xlabel('Episode Index')
-plt.ylabel('Moving Average Reward')
-plt.legend()
-plt.grid()
-plt.show()
-
-
-
+if __name__ == "__main__":
+    main()
