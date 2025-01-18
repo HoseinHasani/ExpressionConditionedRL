@@ -1,66 +1,73 @@
 import os
-import argparse
 import gymnasium
 import pandas as pd
-from stable_baselines3 import SAC, DDPG, DQN, TD3, PPO
+from stable_baselines3 import SAC, DDPG, DQN, PPO, TD3
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import EvalCallback
 from env_utils.conditioned_envs import ConditionalStateWrapper
 from task_inference_utils.simple_inference import SimpleTaskInference
+from task_inference_utils.sr_inference import SymbolicRegressionInference
+from task_inference_utils.vae_inference import VAEInference
 from visualization_utils import load_monitor_data, plot_moving_average_reward
+import argparse
 
-# Parse arguments
-parser = argparse.ArgumentParser(description="Run a reinforcement learning experiment with various algorithms and environments.")
+# Argument parser
+parser = argparse.ArgumentParser(description="Expression Conditioned Reinforcement Learning")
 parser.add_argument('--env', type=str, default='HalfCheetah-v4',
                     choices=['HalfCheetah-v4', 'Pendulum-v1', 'Swimmer-v4', 'Reacher-v4', 'CartPole-v1'],
-                    help='Environment to use (default: HalfCheetah-v4).')
+                    help='Environment to use for training and evaluation.')
 parser.add_argument('--algo', type=str, default='SAC',
                     choices=['SAC', 'DDPG', 'DQN', 'PPO', 'TD3'],
-                    help='Algorithm to use (default: SAC).')
+                    help='Reinforcement learning algorithm to use.')
+parser.add_argument('--inference', type=str, default='simple',
+                    choices=['simple', 'vae', 'sr'],
+                    help='Task inference method to use.')
 args = parser.parse_args()
 
-# Set up environment and algorithm based on arguments
-env_name = args.env
-algo_name = args.algo
-log_dir = f'./logs/{algo_name}_{env_name}/'
+# Define log directory and titles based on algorithm and environment
+log_dir = f'./logs/{args.algo.lower()}_{args.env.lower()}/'
 os.makedirs(log_dir, exist_ok=True)
 
-# Task inference setup
-task_inference = SimpleTaskInference(14)
+title = f'{args.algo} Performance on {args.env}'
 
-# Environment setup
-env = gymnasium.make(env_name)
+# Select task inference method
+if args.inference == 'simple':
+    task_inference = SimpleTaskInference(14)
+elif args.inference == 'vae':
+    task_inference = VAEInference()
+elif args.inference == 'sr':
+    task_inference = SymbolicRegressionInference(context_size=14)
+
+# Create environment
+env = gymnasium.make(args.env)
 env = ConditionalStateWrapper(env, task_inference=task_inference)
+env = Monitor(env, log_dir)
 
-# Select algorithm
-if algo_name == 'SAC':
+# Select RL algorithm
+if args.algo == 'SAC':
     model = SAC('MlpPolicy', env, verbose=1, learning_rate=0.001)
-elif algo_name == 'DDPG':
+elif args.algo == 'DDPG':
     model = DDPG('MlpPolicy', env, verbose=1, learning_rate=0.001)
-elif algo_name == 'DQN':
+elif args.algo == 'DQN':
     model = DQN('MlpPolicy', env, verbose=1, learning_rate=0.001)
-elif algo_name == 'PPO':
+elif args.algo == 'PPO':
     model = PPO('MlpPolicy', env, verbose=1, learning_rate=0.001)
-elif algo_name == 'TD3':
+elif args.algo == 'TD3':
     model = TD3('MlpPolicy', env, verbose=1, learning_rate=0.001)
-else:
-    raise ValueError(f"Unsupported algorithm: {algo_name}")
 
-# Evaluation environment setup
-eval_env = gymnasium.make(env_name)
+# Evaluation environment
+eval_env = gymnasium.make(args.env)
 eval_env = ConditionalStateWrapper(eval_env, task_inference=task_inference)
 eval_env = Monitor(eval_env, log_dir)
 
-# Evaluation callback setup
+# Callback for evaluation
 eval_callback = EvalCallback(eval_env, best_model_save_path=log_dir,
-                              log_path=log_dir, eval_freq=50,
-                              deterministic=True, render=False)
+                             log_path=log_dir, eval_freq=50,
+                             deterministic=True, render=False)
 
 # Train the model
 model.learn(total_timesteps=7000, callback=eval_callback)
 
 # Load and visualize results
 results_df = load_monitor_data(log_dir)
-plot_title = f'{algo_name} Performance on {env_name}'
-plot_moving_average_reward(results_df, title=plot_title, label=algo_name, color='blue')
-
+plot_moving_average_reward(results_df, title=title, label=args.algo, color='blue')
