@@ -2,23 +2,23 @@ from gym import Wrapper
 from collections import deque
 import numpy as np
 import ctypes
-import random 
+
 
 class NonStationaryEnv(Wrapper):
-"""
-Implements a non-stationary environment wrapper for various OpenAI Gym environments.
-
-This wrapper allows the environment to change its dynamics, such as gravity, mass, friction, etc., at the start of each episode. The changes are controlled by a queue of task IDs, which are cycled through with each new episode.
-
-The wrapper supports the following environments:
-- CartPole-v1: Changes gravity and mass
-- HalfCheetah-v4: Changes gravity and wind force
-- Pendulum-v1: Changes gravity and pendulum length
-- Swimmer-v4: Changes viscosity, mass, friction, and degrees of freedom
-- Reacher-v4: Changes mass and degrees of freedom
-
-The wrapper keeps track of the true task labels for each episode, which can be used for supervised learning.
-"""
+    """
+    Implements a non-stationary environment wrapper for various OpenAI Gym environments.
+    
+    This wrapper allows the environment to change its dynamics, such as gravity, mass, friction, etc., at the start of each episode. The changes are controlled by a queue of task IDs, which are cycled through with each new episode.
+    
+    The wrapper supports the following environments:
+    - CartPole-v1: Changes gravity and mass
+    - HalfCheetah-v4: Changes gravity and wind force
+    - Pendulum-v1: Changes gravity and pendulum length
+    - Swimmer-v4: Changes viscosity, mass, friction, and degrees of freedom
+    - Reacher-v4: Changes mass and degrees of freedom
+    
+    The wrapper keeps track of the true task labels for each episode, which can be used for supervised learning.
+    """
 
     def __init__(self, env, max_episode_len, tasks, task_name, env_name, n_supervised_episodes):
         super(NonStationaryEnv, self).__init__(env)
@@ -186,6 +186,24 @@ The wrapper keeps track of the true task labels for each episode, which can be u
                     self.unwrapped.model.dof_damping = self.reacher_dof[self.current_task]
                     # print("v:",self.unwrapped.model.opt.viscosity)
                     print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    self.tasks.rotate(-1)
+                    
+        elif self.env_name == "GoalReacher":
+            if self.task_name == "wind_power":
+                # Change wind power dynamically
+                if self.counter % self.max_episode_len == 0:
+                    if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
+                        self.true_labels.append(self.current_task)
+                    self.env.wind_power = self.tasks[0]  # Set wind power to the current task
+                    print(f"SET WIND POWER TO TASK {self.current_task} AT STEP {self.counter}!")
+                    self.tasks.rotate(-1)
+            elif self.task_name == "goal_radius":
+                # Change goal radius dynamically
+                if self.counter % self.max_episode_len == 0:
+                    if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
+                        self.true_labels.append(self.current_task)
+                    self.env.goal_rad = self.tasks[0] * self.env.max_pos  # Adjust goal radius
+                    print(f"SET GOAL RADIUS TO TASK {self.current_task} AT STEP {self.counter}!")
                     self.tasks.rotate(-1)
        
         next_obs, reward, terminated, done, info = self.env.step(action)
