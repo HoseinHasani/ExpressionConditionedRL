@@ -1,4 +1,5 @@
 import os
+import json
 import gymnasium
 import pandas as pd
 from stable_baselines3 import SAC, DDPG, DQN, PPO, TD3
@@ -14,11 +15,7 @@ from visualization_utils import load_monitor_data, plot_moving_average_reward
 import argparse
 
 # Hyperparameters
-max_ep_len = 220
-n_tasks = 3
-task_name = None
 
-total_timesteps = 7000
 learning_rate = 0.001
 
 
@@ -34,6 +31,19 @@ parser.add_argument('--inference', type=str, default='sr',
                     choices=['simple', 'vae', 'sr'],
                     help='Task inference method to use.')
 args = parser.parse_args()
+
+
+config_path = os.path.join('configs', f"{args.env}.json")
+
+with open(config_path, 'r') as f:
+    config = json.load(f)
+    
+    
+# Extract parameters from the config
+max_ep_len = config['max_ep_len']
+n_tasks = config['n_tasks']
+task_name = config['task_name']
+total_timesteps = config['total_timesteps']
 
 
 log_dir = f'./logs/{args.algo.lower()}_{args.env.lower()}/'
