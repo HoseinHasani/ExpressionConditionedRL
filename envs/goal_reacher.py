@@ -8,8 +8,8 @@ import ctypes
 class GoalReacherEnv(gym.Env):
     metadata = {"render_modes": ["human"], "render_fps": 50}
 
-    def __init__(self, seed=0, max_pos=100, goal_rad=0.08, n_tasks=0,
-                 step_length=8, max_step=500, wind_power=0.3, neverending=False,
+    def __init__(self, seed=0, max_pos=100, goal_rad=0.08, n_tasks=4,
+                 step_length=8, max_step=500, wind_power=0.0, neverending=False,
                  disable_goal=True, apply_noise=True, noise_power=0.005):
         
         self.max_pos = max_pos

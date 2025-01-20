@@ -1,13 +1,12 @@
 import os
 import json
 import gymnasium
-import pandas as pd
 from stable_baselines3 import SAC, DDPG, DQN, PPO, TD3
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import EvalCallback
 from env_utils.conditioned_envs import ConditionalStateWrapper
 from env_utils.non_stationary_wrapper import NonStationaryEnv
-from envs.reacher import GoalReacherEnv
+from envs.goal_reacher import GoalReacherEnv
 from task_inference_utils.simple_inference import SimpleTaskInference
 from task_inference_utils.sr_inference import SymbolicRegressionInference
 from task_inference_utils.vae_inference import VAEInference
@@ -44,7 +43,7 @@ max_ep_len = config['max_ep_len']
 n_tasks = config['n_tasks']
 task_name = config['task_name']
 total_timesteps = config['total_timesteps']
-
+eval_freq = config['eval_freq']
 
 log_dir = f'./logs/{args.algo.lower()}_{args.env.lower()}/'
 os.makedirs(log_dir, exist_ok=True)
@@ -86,7 +85,7 @@ eval_env = Monitor(eval_env, log_dir)
 
 # Callback for evaluation
 eval_callback = EvalCallback(eval_env, best_model_save_path=log_dir,
-                             log_path=log_dir, eval_freq=50,
+                             log_path=log_dir, eval_freq=eval_freq,
                              deterministic=True, render=False)
 
 # Train the model

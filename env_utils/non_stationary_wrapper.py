@@ -194,7 +194,7 @@ class NonStationaryEnv(Wrapper):
                 if self.counter % self.max_episode_len == 0:
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
-                    self.env.wind_power = self.tasks[0]  # Set wind power to the current task
+                    self.env.wind_power = 0.8  # Set wind power to the current task
                     # print(f"SET WIND POWER TO TASK {self.current_task} AT STEP {self.counter}!")
                     self.tasks.rotate(-1)
             elif self.task_name == "goal_radius":

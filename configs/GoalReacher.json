@@ -1,6 +1,7 @@
 {
   "max_ep_len": 220,
   "n_tasks": 3,
-  "task_name": null,
-  "total_timesteps": 7000
+  "task_name": "wind_power",
+  "total_timesteps": 7000,
+  "eval_freq": 50
 }
