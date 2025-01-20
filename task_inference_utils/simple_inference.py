@@ -7,4 +7,4 @@ class SimpleTaskInference(BaseTaskInference):
             return np.zeros(self.context_size, dtype=np.float32)
         
         avg_reward = np.mean([transition[2] for transition in trajectory_buffer])
-        return np.array([avg_reward] * self.context_size, dtype=np.float32)
+        return 0*np.array([avg_reward] * self.context_size, dtype=np.float32)

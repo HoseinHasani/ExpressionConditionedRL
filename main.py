@@ -13,6 +13,15 @@ from task_inference_utils.vae_inference import VAEInference
 from visualization_utils import load_monitor_data, plot_moving_average_reward
 import argparse
 
+# Hyperparameters
+max_ep_len = 220
+n_tasks = 3
+task_name = None
+
+total_timesteps = 7000
+learning_rate = 0.001
+
+
 # Argument parser
 parser = argparse.ArgumentParser(description="Expression Conditioned Reinforcement Learning")
 parser.add_argument('--env', type=str, default='GoalReacher',
@@ -43,24 +52,25 @@ elif args.inference == 'sr':
 # Create environment
 
 env = GoalReacherEnv()  if args.env == 'GoalReacher' else gymnasium.make(args.env)
-env = NonStationaryEnv(env, max_ep_len=200, n_tasks=3, task_name=None, env_name=args.env)
+env = NonStationaryEnv(env, max_ep_len, n_tasks, task_name, args.env)
 env = ConditionalStateWrapper(env, task_inference=task_inference)
 env = Monitor(env, log_dir)
 
 # Select RL algorithm
 if args.algo == 'SAC':
-    model = SAC('MlpPolicy', env, verbose=1, learning_rate=0.001)
+    model = SAC('MlpPolicy', env, verbose=1, learning_rate=learning_rate)
 elif args.algo == 'DDPG':
-    model = DDPG('MlpPolicy', env, verbose=1, learning_rate=0.001)
+    model = DDPG('MlpPolicy', env, verbose=1, learning_rate=learning_rate)
 elif args.algo == 'DQN':
-    model = DQN('MlpPolicy', env, verbose=1, learning_rate=0.001)
+    model = DQN('MlpPolicy', env, verbose=1, learning_rate=learning_rate)
 elif args.algo == 'PPO':
-    model = PPO('MlpPolicy', env, verbose=1, learning_rate=0.001)
+    model = PPO('MlpPolicy', env, verbose=1, learning_rate=learning_rate)
 elif args.algo == 'TD3':
-    model = TD3('MlpPolicy', env, verbose=1, learning_rate=0.001)
+    model = TD3('MlpPolicy', env, verbose=1, learning_rate=learning_rate)
 
 # Evaluation environment
 eval_env = GoalReacherEnv()  if args.env == 'GoalReacher' else gymnasium.make(args.env)  
+eval_env = NonStationaryEnv(eval_env, max_ep_len, n_tasks, task_name, args.env)
 eval_env = ConditionalStateWrapper(eval_env, task_inference=task_inference)
 eval_env = Monitor(eval_env, log_dir)
 
@@ -70,7 +80,7 @@ eval_callback = EvalCallback(eval_env, best_model_save_path=log_dir,
                              deterministic=True, render=False)
 
 # Train the model
-model.learn(total_timesteps=7000, callback=eval_callback)
+model.learn(total_timesteps=total_timesteps, callback=eval_callback)
 
 # Load and visualize results
 results_df = load_monitor_data(log_dir)

@@ -1,4 +1,4 @@
-from gym import Wrapper
+from gymnasium import Wrapper
 from collections import deque
 import numpy as np
 import ctypes
@@ -86,7 +86,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.env._env.physics.model.opt.gravity[:] = (ctypes.c_double * 3)(*[0., 0., self.c_gravities[self.current_task]])
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
             if self.task_name == "mass":
                 # Mass Task for cartpole
@@ -94,7 +94,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.env._env.physics.model.body_mass =  self.cartpole_masses[self.current_task]
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
 
        
@@ -105,7 +105,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.unwrapped.model.opt.gravity[:] = (ctypes.c_double * 3)(*[0., 0., self.h_gravities[self.current_task]])
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
             elif self.task_name == "wind":
                 # Gravity Task for half Cheetah
@@ -114,7 +114,7 @@ class NonStationaryEnv(Wrapper):
                         self.true_labels.append(self.current_task)
                     for body_id in range(8):
                         self.unwrapped.data.xfrc_applied[body_id, :] = self.h_winds[self.current_task]
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
 
         elif self.env_name == "Pendulum-v1":
@@ -124,7 +124,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.unwrapped.g = self.p_gravities[self.current_task]
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
             if self.task_name == "length":
                 # Length Task for Penulum gym
@@ -132,7 +132,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.unwrapped.l = self.lengths[self.current_task]
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
         
         elif self.env_name == "Swimmer-v4":
@@ -142,7 +142,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.unwrapped.model.opt.viscosity = self.viscosities[self.current_task]
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
             elif self.task_name == "mass": 
                 # Mass Task for Swimmer
@@ -150,7 +150,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.unwrapped.model.body_mass =  self.swimmer_masses[self.current_task]
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
             elif self.task_name == "friction":
                 # Friction coefficient Task swimmer
@@ -158,7 +158,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.unwrapped.model.geom_friction = self.geom_coef[self.current_task]
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
             elif self.task_name == "dof":
                 if self.counter % self.max_episode_len == 0:
@@ -166,7 +166,7 @@ class NonStationaryEnv(Wrapper):
                         self.true_labels.append(self.current_task)
                     self.unwrapped.model.dof_damping = self.dof[self.current_task]
                     # print("v:",self.unwrapped.model.opt.viscosity)
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
         
         elif self.env_name == "Reacher-v4":
@@ -176,7 +176,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.unwrapped.model.body_mass =  self.reacher_masses[self.current_task]
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
 
             elif self.task_name == "dof":
@@ -185,7 +185,7 @@ class NonStationaryEnv(Wrapper):
                         self.true_labels.append(self.current_task)
                     self.unwrapped.model.dof_damping = self.reacher_dof[self.current_task]
                     # print("v:",self.unwrapped.model.opt.viscosity)
-                    print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
+                    # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
                     
         elif self.env_name == "GoalReacher":
@@ -195,7 +195,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.env.wind_power = self.tasks[0]  # Set wind power to the current task
-                    print(f"SET WIND POWER TO TASK {self.current_task} AT STEP {self.counter}!")
+                    # print(f"SET WIND POWER TO TASK {self.current_task} AT STEP {self.counter}!")
                     self.tasks.rotate(-1)
             elif self.task_name == "goal_radius":
                 # Change goal radius dynamically
@@ -203,7 +203,7 @@ class NonStationaryEnv(Wrapper):
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
                         self.true_labels.append(self.current_task)
                     self.env.goal_rad = self.tasks[0] * self.env.max_pos  # Adjust goal radius
-                    print(f"SET GOAL RADIUS TO TASK {self.current_task} AT STEP {self.counter}!")
+                    # print(f"SET GOAL RADIUS TO TASK {self.current_task} AT STEP {self.counter}!")
                     self.tasks.rotate(-1)
        
         next_obs, reward, terminated, done, info = self.env.step(action)
