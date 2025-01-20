@@ -5,6 +5,7 @@ from stable_baselines3 import SAC, DDPG, DQN, PPO, TD3
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import EvalCallback
 from env_utils.conditioned_envs import ConditionalStateWrapper
+from env_utils.non_stationary_wrapper import NonStationaryEnv
 from envs.reacher import GoalReacherEnv
 from task_inference_utils.simple_inference import SimpleTaskInference
 from task_inference_utils.sr_inference import SymbolicRegressionInference
@@ -14,13 +15,13 @@ import argparse
 
 # Argument parser
 parser = argparse.ArgumentParser(description="Expression Conditioned Reinforcement Learning")
-parser.add_argument('--env', type=str, default='HalfCheetah-v4',
+parser.add_argument('--env', type=str, default='GoalReacher',
                     choices=['HalfCheetah-v4', 'Pendulum-v1', 'Swimmer-v4', 'Reacher-v4', 'CartPole-v1', 'GoalReacher'],
                     help='Environment to use for training and evaluation.')
 parser.add_argument('--algo', type=str, default='SAC',
                     choices=['SAC', 'DDPG', 'DQN', 'PPO', 'TD3'],
                     help='Reinforcement learning algorithm to use.')
-parser.add_argument('--inference', type=str, default='simple',
+parser.add_argument('--inference', type=str, default='sr',
                     choices=['simple', 'vae', 'sr'],
                     help='Task inference method to use.')
 args = parser.parse_args()
@@ -40,11 +41,9 @@ elif args.inference == 'sr':
     task_inference = SymbolicRegressionInference(context_size=14)
 
 # Create environment
-if args.env == 'GoalReacher':
-    env = GoalReacherEnv()  
-else:
-    env = gymnasium.make(args.env)
-    
+
+env = GoalReacherEnv()  if args.env == 'GoalReacher' else gymnasium.make(args.env)
+env = NonStationaryEnv(env, max_ep_len=200, n_tasks=3, task_name=None, env_name=args.env)
 env = ConditionalStateWrapper(env, task_inference=task_inference)
 env = Monitor(env, log_dir)
 
@@ -61,11 +60,7 @@ elif args.algo == 'TD3':
     model = TD3('MlpPolicy', env, verbose=1, learning_rate=0.001)
 
 # Evaluation environment
-if args.env == 'GoalReacher':
-    eval_env = GoalReacherEnv()  
-else:
-    eval_env = gymnasium.make(args.env)
-    
+eval_env = GoalReacherEnv()  if args.env == 'GoalReacher' else gymnasium.make(args.env)  
 eval_env = ConditionalStateWrapper(eval_env, task_inference=task_inference)
 eval_env = Monitor(eval_env, log_dir)
 

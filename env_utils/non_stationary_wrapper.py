@@ -20,10 +20,10 @@ class NonStationaryEnv(Wrapper):
     The wrapper keeps track of the true task labels for each episode, which can be used for supervised learning.
     """
 
-    def __init__(self, env, max_episode_len, tasks, task_name, env_name, n_supervised_episodes):
+    def __init__(self, env, max_ep_len, n_tasks, task_name, env_name, n_supervised_episodes=1):
         super(NonStationaryEnv, self).__init__(env)
-        self.tasks = deque(tasks)
-        self.max_episode_len = max_episode_len
+        self.tasks = deque([i for i in range(n_tasks)])
+        self.max_episode_len = max_ep_len
         self.task_name = task_name
         self.env_name = env_name
         self.n_supervised_episodes = n_supervised_episodes
@@ -80,7 +80,7 @@ class NonStationaryEnv(Wrapper):
     def step(self, action):
 
         if self.env_name == "cartpole":
-            if self.task_name == "gravity":
+            if self.task_name == "gravity" or self.task_name == None:
                 # Gravity Task for cartpole
                 if self.counter % self.max_episode_len == 0:
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
@@ -99,7 +99,7 @@ class NonStationaryEnv(Wrapper):
 
        
         if self.env_name == "HalfCheetah-v4":
-            if self.task_name == "gravity":
+            if self.task_name == "gravity" or self.task_name == None:
                 # Gravity Task for half Cheetah
                 if self.counter % self.max_episode_len == 0:
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
@@ -118,7 +118,7 @@ class NonStationaryEnv(Wrapper):
                     self.tasks.rotate(-1)
 
         elif self.env_name == "Pendulum-v1":
-            if self.task_name == "gravity":
+            if self.task_name == "gravity" or self.task_name == None:
                 # Gravity Task for Penulum gym
                 if self.counter % self.max_episode_len == 0:
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
@@ -136,7 +136,7 @@ class NonStationaryEnv(Wrapper):
                     self.tasks.rotate(-1)
         
         elif self.env_name == "Swimmer-v4":
-            if self.task_name == "viscosity":
+            if self.task_name == "viscosity" or self.task_name == None:
                 # Viscosity Task swimmer
                 if self.counter % self.max_episode_len == 0:
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
@@ -170,7 +170,7 @@ class NonStationaryEnv(Wrapper):
                     self.tasks.rotate(-1)
         
         elif self.env_name == "Reacher-v4":
-            if self.task_name == "mass": 
+            if self.task_name == "mass" or self.task_name == None: 
                 # Mass Task for Reacher
                 if self.counter % self.max_episode_len == 0:
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
@@ -189,7 +189,7 @@ class NonStationaryEnv(Wrapper):
                     self.tasks.rotate(-1)
                     
         elif self.env_name == "GoalReacher":
-            if self.task_name == "wind_power":
+            if self.task_name == "wind_power" or self.task_name == None:
                 # Change wind power dynamically
                 if self.counter % self.max_episode_len == 0:
                     if self.counter >= len(self.tasks) * self.max_episode_len * self.n_supervised_episodes:
