@@ -2,6 +2,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
+
+def fix_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    
 def load_monitor_data(log_dir):
 
     monitor_path = os.path.join(log_dir, 'monitor.csv')

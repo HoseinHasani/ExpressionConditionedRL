@@ -10,13 +10,14 @@ from envs.goal_reacher import GoalReacherEnv
 from task_inference_utils.simple_inference import SimpleTaskInference
 from task_inference_utils.sr_inference import SymbolicRegressionInference
 from task_inference_utils.vae_inference import VAEInference
-from visualization_utils import load_monitor_data, plot_moving_average_reward
+from general_utils import load_monitor_data, plot_moving_average_reward, fix_seed
 import argparse
 
 # Hyperparameters
 
 learning_rate = 0.001
 
+fix_seed(seed=0)
 
 # Argument parser
 parser = argparse.ArgumentParser(description="Expression Conditioned Reinforcement Learning")
