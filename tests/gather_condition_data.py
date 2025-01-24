@@ -1,7 +1,12 @@
 import os
+import sys
 import json
 import gymnasium
 import numpy as np
+from datetime import datetime
+
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
 from env_utils.conditioned_envs import ConditionalStateWrapper
 from env_utils.non_stationary_wrapper import NonStationaryEnv
 from envs.goal_reacher import GoalReacherEnv
@@ -22,9 +27,10 @@ parser.add_argument('--inference', type=str, default='sr',
                     help='Task inference method to use.')
 parser.add_argument('--output', type=str, default='data/task_inference_data.json',
                     help='Path to save the gathered data.')
+parser.add_argument('--episodes', type=int, default=10, help='Number of episodes for data gathering.')
 args = parser.parse_args()
 
-config_path = os.path.join('configs', f"{args.env}.json")
+config_path = os.path.join('../configs', f"{args.env}.json")
 with open(config_path, 'r') as f:
     config = json.load(f)
 
@@ -46,18 +52,17 @@ env = NonStationaryEnv(env, max_ep_len, n_tasks, task_name, args.env)
 env = ConditionalStateWrapper(env, task_inference=task_inference)
 
 data = []
-num_episodes = 100  
-
-for episode_id in range(num_episodes):
-    obs = env.reset()
-    done = False
+for episode_id in range(args.episodes):
+    print(f"{datetime.now()} - Gathering data for episode {episode_id}")
+    obs, _ = env.reset()
+    terminated = False
+    truncated = False
     episode_conditions = []
 
-    while not done:
+    while not terminated and not truncated:
         action = env.action_space.sample()
-        obs, reward, done, info = env.step(action)
-
-        condition = info.get('condition', None)  
+        obs, reward, terminated, truncated, info = env.step(action)
+        condition = info.get('context', None)  
         if condition is not None:
             episode_conditions.append(condition)
 
@@ -66,7 +71,12 @@ for episode_id in range(num_episodes):
         'conditions': episode_conditions
     })
 
+metadata = {
+    'env': args.env,
+    'inference': args.inference,
+    'num_episodes': args.episodes
+}
 with open(args.output, 'w') as f:
-    json.dump(data, f, indent=4)
+    json.dump({'metadata': metadata, 'data': data}, f, indent=4)
 
 print(f"Data gathering complete. Saved to {args.output}")
