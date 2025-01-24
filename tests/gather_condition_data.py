@@ -1,8 +1,8 @@
 import os
 import sys
-import json
 import gymnasium
 import numpy as np
+import json
 from datetime import datetime
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -25,8 +25,8 @@ parser.add_argument('--env', type=str, default='GoalReacher',
 parser.add_argument('--inference', type=str, default='sr',
                     choices=['simple', 'vae', 'sr'],
                     help='Task inference method to use.')
-parser.add_argument('--output', type=str, default='data/task_inference_data.json',
-                    help='Path to save the gathered data.')
+parser.add_argument('--output_dir', type=str, default='data',
+                    help='Directory to save the gathered data.')
 parser.add_argument('--episodes', type=int, default=10, help='Number of episodes for data gathering.')
 args = parser.parse_args()
 
@@ -38,7 +38,8 @@ max_ep_len = config['max_ep_len']
 n_tasks = config['n_tasks']
 task_name = config['task_name']
 
-os.makedirs(os.path.dirname(args.output), exist_ok=True)
+output_path = os.path.join(args.output_dir, f"{args.env}_{args.inference}")
+os.makedirs(output_path, exist_ok=True)
 
 if args.inference == 'simple':
     task_inference = SimpleTaskInference(14)
@@ -51,32 +52,27 @@ env = GoalReacherEnv() if args.env == 'GoalReacher' else gymnasium.make(args.env
 env = NonStationaryEnv(env, max_ep_len, n_tasks, task_name, args.env)
 env = ConditionalStateWrapper(env, task_inference=task_inference)
 
-data = []
+conditions = []
+labels = []
+
 for episode_id in range(args.episodes):
     print(f"{datetime.now()} - Gathering data for episode {episode_id}")
     obs, _ = env.reset()
     terminated = False
     truncated = False
-    episode_conditions = []
 
     while not terminated and not truncated:
         action = env.action_space.sample()
         obs, reward, terminated, truncated, info = env.step(action)
         condition = info.get('context', None)  
         if condition is not None:
-            episode_conditions.append(condition)
+            conditions.append(condition)
+            labels.append(episode_id)
 
-    data.append({
-        'episode_id': episode_id,
-        'conditions': episode_conditions
-    })
+conditions = np.array(conditions)
+labels = np.array(labels)
 
-metadata = {
-    'env': args.env,
-    'inference': args.inference,
-    'num_episodes': args.episodes
-}
-with open(args.output, 'w') as f:
-    json.dump({'metadata': metadata, 'data': data}, f, indent=4)
+np.save(os.path.join(output_path, 'conditions.npy'), conditions)
+np.save(os.path.join(output_path, 'labels.npy'), labels)
 
-print(f"Data gathering complete. Saved to {args.output}")
+print(f"Data gathering complete. Saved conditions and labels in {output_path}")
