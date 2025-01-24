@@ -12,6 +12,7 @@ class ConditionalStateWrapper(gym.ObservationWrapper):
         self.buffer_size = trajectory_limit
         self.inference_frequency = inference_frequency
         self.step_counter = 0  
+        self.episode_id = 0  
         
         obs_space = self.env.observation_space
         self.observation_space = gym.spaces.Box(
@@ -36,11 +37,13 @@ class ConditionalStateWrapper(gym.ObservationWrapper):
             self.context = self.task_inference.infer_task(self.trajectory_buffer)
 
         self.current_obs = next_obs
+        info = {'env_info': info, 'context': self.context, 'episode_id': self.episode_id}
         return self.observation(next_obs), reward, terminated, truncated, info
 
     def reset(self, **kwargs):
         self.trajectory_buffer = []
         self.step_counter = 0  
+        self.episode_id += 1  
         initial_obs, _ = self.env.reset(**kwargs)
         self.current_obs = initial_obs
 
