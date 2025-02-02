@@ -12,12 +12,14 @@ batch_size = 32
 epochs = 50
 learning_rate = 0.001
 test_split_ratio = 0.2
+n_tasks = 3
 
 conditions_path = os.path.join(data_dir, "conditions.npy")
 labels_path = os.path.join(data_dir, "labels.npy")
 
 conditions = np.load(conditions_path)
 labels = np.load(labels_path)
+labels = labels % n_tasks
 
 conditions_tensor = torch.tensor(conditions, dtype=torch.float32)
 labels_tensor = torch.tensor(labels, dtype=torch.long)
@@ -44,11 +46,8 @@ class MLPClassifier(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-input_size = conditions.shape[1]
-hidden_size = 128
-output_size = len(np.unique(labels))
 
-model = MLPClassifier(input_size, hidden_size, output_size)
+model = MLPClassifier(conditions.shape[1], 128, n_tasks)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
