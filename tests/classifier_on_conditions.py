@@ -13,6 +13,7 @@ epochs = 50
 learning_rate = 0.001
 test_split_ratio = 0.2
 n_tasks = 3
+apply_normalization = True
 
 conditions_path = os.path.join(data_dir, "conditions.npy")
 labels_path = os.path.join(data_dir, "labels.npy")
@@ -20,6 +21,11 @@ labels_path = os.path.join(data_dir, "labels.npy")
 conditions = np.load(conditions_path)
 labels = np.load(labels_path)
 labels = labels % n_tasks
+
+if apply_normalization:
+    mean = conditions.mean(0)
+    std = conditions.std(0)
+    conditions = (conditions - mean) / (std + 1e-6)
 
 conditions_tensor = torch.tensor(conditions, dtype=torch.float32)
 labels_tensor = torch.tensor(labels, dtype=torch.long)
