@@ -27,7 +27,7 @@ parser.add_argument('--inference', type=str, default='sr',
                     help='Task inference method to use.')
 parser.add_argument('--output_dir', type=str, default='data',
                     help='Directory to save the gathered data.')
-parser.add_argument('--episodes', type=int, default=10, help='Number of episodes for data gathering.')
+parser.add_argument('--episodes', type=int, default=20, help='Number of episodes for data gathering.')
 args = parser.parse_args()
 
 config_path = os.path.join('../configs', f"{args.env}.json")

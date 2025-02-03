@@ -45,6 +45,7 @@ class SymbolicRegressionInference(BaseTaskInference):
         coeffs = model.coefficients()
         flat_coeffs = np.concatenate(coeffs, axis=None).astype(np.float32)
         
-        flat_coeffs = np.clip(flat_coeffs, -1.1, 1.1)
+        # flat_coeffs = np.clip(flat_coeffs, -1.1, 1.1)
+        flat_coeffs = 2 * np.tanh(0.5 * flat_coeffs)
 
         return flat_coeffs
