@@ -17,6 +17,7 @@ from general_utils import fix_seed
 import argparse
 
 fix_seed(seed=0)
+subtract_baseline = True
 
 parser = argparse.ArgumentParser(description="Gather data for task inference evaluation")
 parser.add_argument('--env', type=str, default='GoalReacher',
@@ -28,6 +29,7 @@ parser.add_argument('--inference', type=str, default='sr',
 parser.add_argument('--output_dir', type=str, default='data',
                     help='Directory to save the gathered data.')
 parser.add_argument('--episodes', type=int, default=20, help='Number of episodes for data gathering.')
+
 args = parser.parse_args()
 
 config_path = os.path.join('../configs', f"{args.env}.json")
@@ -48,6 +50,28 @@ elif args.inference == 'vae':
 elif args.inference == 'sr':
     task_inference = SymbolicRegressionInference(context_size=14)
 
+if subtract_baseline:
+    baseline_env = GoalReacherEnv() if args.env == 'GoalReacher' else gymnasium.make(args.env)
+    baseline_env = ConditionalStateWrapper(baseline_env, task_inference=task_inference)
+
+    baseline_conditions = []
+    for _ in range(5):
+        obs, _ = baseline_env.reset()
+        terminated, truncated = False, False
+
+        while not terminated and not truncated:
+            action = baseline_env.action_space.sample()
+            obs, reward, terminated, truncated, info = baseline_env.step(action)
+            condition = info.get('context', None)
+            if condition is not None:
+                baseline_conditions.append(condition)
+
+    baseline_conditions = np.array(baseline_conditions)
+    baseline_vector = np.mean(baseline_conditions, axis=0)
+else:
+    baseline_vector = np.zeros(14, dtype=np.float32)
+    
+
 env = GoalReacherEnv() if args.env == 'GoalReacher' else gymnasium.make(args.env)
 env = NonStationaryEnv(env, max_ep_len, n_tasks, task_name, args.env)
 env = ConditionalStateWrapper(env, task_inference=task_inference)
@@ -64,8 +88,9 @@ for episode_id in range(args.episodes):
     while not terminated and not truncated:
         action = env.action_space.sample()
         obs, reward, terminated, truncated, info = env.step(action)
-        condition = info.get('context', None)  
+        condition = info.get('context', None)
         if condition is not None:
+            condition = condition - baseline_vector  
             conditions.append(condition)
             labels.append(episode_id)
 
