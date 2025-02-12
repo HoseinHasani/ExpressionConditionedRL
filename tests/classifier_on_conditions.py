@@ -3,10 +3,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset, random_split
+from torch.utils.data import DataLoader, TensorDataset, Subset
 
 output_dir = "data"
-env_inference = "GoalReacher_sr"  
+env_inference = "GoalReacher_sr"
 data_dir = os.path.join(output_dir, env_inference)
 batch_size = 32
 epochs = 50
@@ -30,10 +30,26 @@ if apply_normalization:
 conditions_tensor = torch.tensor(conditions, dtype=torch.float32)
 labels_tensor = torch.tensor(labels, dtype=torch.long)
 
-full_dataset = TensorDataset(conditions_tensor, labels_tensor)
-test_size = int(len(full_dataset) * test_split_ratio)
-train_size = len(full_dataset) - test_size
-train_dataset, test_dataset = random_split(full_dataset, [train_size, test_size])
+chunk_indices = []
+start_idx = 0
+
+for i in range(1, len(labels)):
+    if labels[i] != labels[i - 1]:  
+        chunk_indices.append((start_idx, i))  
+        start_idx = i  
+chunk_indices.append((start_idx, len(labels)))  
+
+np.random.shuffle(chunk_indices)
+
+test_chunk_count = int(len(chunk_indices) * test_split_ratio)
+test_chunks = chunk_indices[:test_chunk_count]
+train_chunks = chunk_indices[test_chunk_count:]
+
+train_indices = [i for start, end in train_chunks for i in range(start, end)]
+test_indices = [i for start, end in test_chunks for i in range(start, end)]
+
+train_dataset = Subset(TensorDataset(conditions_tensor, labels_tensor), train_indices)
+test_dataset = Subset(TensorDataset(conditions_tensor, labels_tensor), test_indices)
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
@@ -51,7 +67,6 @@ class MLPClassifier(nn.Module):
 
     def forward(self, x):
         return self.model(x)
-
 
 model = MLPClassifier(conditions.shape[1], 128, n_tasks)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
