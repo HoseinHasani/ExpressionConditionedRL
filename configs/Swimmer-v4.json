@@ -1,0 +1,7 @@
+{
+  "max_ep_len": 1000,
+  "n_tasks": 5,
+  "task_name": "gravity",
+  "total_timesteps": 10000,
+  "eval_freq": 50
+}
