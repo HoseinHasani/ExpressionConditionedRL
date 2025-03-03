@@ -5,6 +5,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset, Subset
+from general_utils import fix_seed
+
+fix_seed(seed=0)
 
 output_dir = "data"
 env_name = "HalfCheetah-v4"
