@@ -1,19 +1,31 @@
 import os
 import numpy as np
+import json
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset, Subset
 
 output_dir = "data"
-env_inference = "GoalReacher_sr"
+env_name = "HalfCheetah-v4"
+inference_type = "sr"
+
+env_inference =  f"{env_name}_{inference_type}"
 data_dir = os.path.join(output_dir, env_inference)
 batch_size = 32
-epochs = 50
+epochs = 40
 learning_rate = 0.001
 test_split_ratio = 0.2
-n_tasks = 3
+# n_tasks = 5
 apply_normalization = True
+
+
+config_path = os.path.join('../configs', f"{env_name}.json")
+with open(config_path, 'r') as f:
+    config = json.load(f)
+
+n_tasks = config['n_tasks']
+
 
 conditions_path = os.path.join(data_dir, "conditions.npy")
 labels_path = os.path.join(data_dir, "labels.npy")
