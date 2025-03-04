@@ -45,6 +45,7 @@ n_tasks = config['n_tasks']
 task_name = config['task_name']
 total_timesteps = config['total_timesteps']
 eval_freq = config['eval_freq']
+context_size = config['context_size']
 
 log_dir = f'./logs/{args.algo.lower()}_{args.env.lower()}/'
 os.makedirs(log_dir, exist_ok=True)
@@ -53,11 +54,11 @@ title = f'{args.algo} Performance on {args.env}'
 
 # Select task inference method
 if args.inference == 'simple':
-    task_inference = SimpleTaskInference(14)
+    task_inference = SimpleTaskInference(context_size)
 elif args.inference == 'vae':
     task_inference = VAEInference()
 elif args.inference == 'sr':
-    task_inference = SymbolicRegressionInference(context_size=14)
+    task_inference = SymbolicRegressionInference(context_size=context_size)
 
 # Create environment
 
