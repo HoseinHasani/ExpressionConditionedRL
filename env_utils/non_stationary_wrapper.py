@@ -95,7 +95,9 @@ class NonStationaryEnv(Wrapper):
                         self.true_labels.append(self.current_task)
                     self.env._env.physics.model.body_mass =  self.cartpole_masses[self.current_task]
                     # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
-                    self.tasks.rotate(-1)
+                    self.tasks.rotate(-1)            
+            else:
+                assert False
 
        
         if self.env_name == "HalfCheetah-v4":
@@ -116,6 +118,8 @@ class NonStationaryEnv(Wrapper):
                         self.unwrapped.data.xfrc_applied[body_id, :] = self.h_winds[self.current_task]
                     # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
+            else:
+                assert False
 
         elif self.env_name == "Pendulum-v1":
             if self.task_name == "gravity" or self.task_name == None:
@@ -134,6 +138,8 @@ class NonStationaryEnv(Wrapper):
                     self.unwrapped.l = self.lengths[self.current_task]
                     # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
+            else:
+                assert False
         
         elif self.env_name == "Swimmer-v4":
             if self.task_name == "viscosity" or self.task_name == None:
@@ -168,7 +174,9 @@ class NonStationaryEnv(Wrapper):
                     # print("v:",self.unwrapped.model.opt.viscosity)
                     # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
-        
+            else:
+                assert False
+                
         elif self.env_name == "Reacher-v4":
             if self.task_name == "mass" or self.task_name == None: 
                 # Mass Task for Reacher
@@ -187,7 +195,9 @@ class NonStationaryEnv(Wrapper):
                     # print("v:",self.unwrapped.model.opt.viscosity)
                     # print("SET TO TASK {} AT STEP {}!".format(self.current_task, self.counter))
                     self.tasks.rotate(-1)
-                    
+            else:
+                assert False
+                
         elif self.env_name == "GoalReacher":
             if self.task_name == "wind_power" or self.task_name == None:
                 # Change wind power dynamically

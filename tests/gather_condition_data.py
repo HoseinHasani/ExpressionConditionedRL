@@ -20,7 +20,7 @@ fix_seed(seed=0)
 subtract_baseline = False
 
 parser = argparse.ArgumentParser(description="Gather data for task inference evaluation")
-parser.add_argument('--env', type=str, default='Pendulum-v1',
+parser.add_argument('--env', type=str, default='Reacher-v4',
                     choices=['HalfCheetah-v4', 'Pendulum-v1', 'Swimmer-v4', 'Reacher-v4', 'CartPole-v1', 'GoalReacher'],
                     help='Environment to use for data gathering.')
 parser.add_argument('--inference', type=str, default='sr',
