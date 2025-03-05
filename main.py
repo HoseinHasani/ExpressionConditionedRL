@@ -69,9 +69,11 @@ elif args.inference == 'oracle':
 # Create environment
 
 env = GoalReacherEnv()  if args.env == 'GoalReacher' else gymnasium.make(args.env)
+
 if args.nonstationary:
     env = NonStationaryEnv(env, max_ep_len, n_tasks, task_name, args.env)
     env = ConditionalStateWrapper(env, task_inference=task_inference, is_oracle=args.inference == 'oracle')
+
 env = Monitor(env, log_dir)
 
 # Select RL algorithm
@@ -88,9 +90,11 @@ elif args.algo == 'TD3':
 
 # Evaluation environment
 eval_env = GoalReacherEnv()  if args.env == 'GoalReacher' else gymnasium.make(args.env)  
+
 if args.nonstationary:
     eval_env = NonStationaryEnv(eval_env, max_ep_len, n_tasks, task_name, args.env)
     eval_env = ConditionalStateWrapper(eval_env, task_inference=task_inference, is_oracle=args.inference == 'oracle')
+
 eval_env = Monitor(eval_env, log_dir)
 
 # Callback for evaluation
