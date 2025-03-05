@@ -9,6 +9,7 @@ from env_utils.non_stationary_wrapper import NonStationaryEnv
 from envs.goal_reacher import GoalReacherEnv
 from task_inference_utils.simple_inference import SimpleTaskInference
 from task_inference_utils.sr_inference import SymbolicRegressionInference
+from task_inference_utils.oracle_inference import OracleInference
 from task_inference_utils.vae_inference import VAEInference
 from general_utils import load_monitor_data, plot_moving_average_reward, fix_seed
 import argparse
@@ -28,8 +29,11 @@ parser.add_argument('--algo', type=str, default='SAC',
                     choices=['SAC', 'DDPG', 'DQN', 'PPO', 'TD3'],
                     help='Reinforcement learning algorithm to use.')
 parser.add_argument('--inference', type=str, default='sr',
-                    choices=['simple', 'vae', 'sr'],
+                    choices=['simple', 'vae', 'sr', 'oracle'],
                     help='Task inference method to use.')
+parser.add_argument('--nonstationary', type=lambda x: (str(x).lower() == 'true'), default=True,
+                    help='Set to False to disable nonstationary environment modifications.')
+
 args = parser.parse_args()
 
 
@@ -59,12 +63,15 @@ elif args.inference == 'vae':
     task_inference = VAEInference()
 elif args.inference == 'sr':
     task_inference = SymbolicRegressionInference(context_size=context_size)
-
+elif args.inference == 'oracle':
+    task_inference = OracleInference(task_size=n_tasks)
+    
 # Create environment
 
 env = GoalReacherEnv()  if args.env == 'GoalReacher' else gymnasium.make(args.env)
-env = NonStationaryEnv(env, max_ep_len, n_tasks, task_name, args.env)
-env = ConditionalStateWrapper(env, task_inference=task_inference)
+if args.nonstationary:
+    env = NonStationaryEnv(env, max_ep_len, n_tasks, task_name, args.env)
+    env = ConditionalStateWrapper(env, task_inference=task_inference, is_oracle=args.inference == 'oracle')
 env = Monitor(env, log_dir)
 
 # Select RL algorithm
@@ -81,8 +88,9 @@ elif args.algo == 'TD3':
 
 # Evaluation environment
 eval_env = GoalReacherEnv()  if args.env == 'GoalReacher' else gymnasium.make(args.env)  
-eval_env = NonStationaryEnv(eval_env, max_ep_len, n_tasks, task_name, args.env)
-eval_env = ConditionalStateWrapper(eval_env, task_inference=task_inference)
+if args.nonstationary:
+    eval_env = NonStationaryEnv(eval_env, max_ep_len, n_tasks, task_name, args.env)
+    eval_env = ConditionalStateWrapper(eval_env, task_inference=task_inference, is_oracle=args.inference == 'oracle')
 eval_env = Monitor(eval_env, log_dir)
 
 # Callback for evaluation

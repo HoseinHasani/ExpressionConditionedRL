@@ -2,8 +2,9 @@ import gymnasium as gym
 import numpy as np
 
 class ConditionalStateWrapper(gym.ObservationWrapper):
-    def __init__(self, env, task_inference, trajectory_limit=100, inference_frequency=10):
+    def __init__(self, env, task_inference, trajectory_limit=100, inference_frequency=10, is_oracle=False):
         super().__init__(env)
+        self.is_oracle = is_oracle
         self.task_inference = task_inference
         self.context_size = task_inference.context_size
         self.context = np.zeros(self.context_size, dtype=np.float32)
@@ -34,7 +35,8 @@ class ConditionalStateWrapper(gym.ObservationWrapper):
 
         self.step_counter += 1
         if self.step_counter % self.inference_frequency == 0:
-            self.context = self.task_inference.infer_task(self.trajectory_buffer)
+            inference_input = self.env.current_task if self.is_oracle else self.trajectory_buffer
+            self.context = self.task_inference.infer_task(inference_input)
 
         self.current_obs = next_obs
         info = {'env_info': info, 'context': self.context, 'episode_id': self.episode_id}
@@ -47,7 +49,8 @@ class ConditionalStateWrapper(gym.ObservationWrapper):
         initial_obs, _ = self.env.reset(**kwargs)
         self.current_obs = initial_obs
 
-        self.context = self.task_inference.infer_task(self.trajectory_buffer)
+        inference_input = self.env.current_task if self.is_oracle else self.trajectory_buffer
+        self.context = self.task_inference.infer_task(inference_input)
         return self.observation(initial_obs), {}
 
     def _add_to_buffer(self, entry):
