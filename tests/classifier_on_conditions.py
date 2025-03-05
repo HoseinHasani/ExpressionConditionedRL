@@ -19,12 +19,15 @@ inference_type = "sr"
 
 env_inference = f"{env_name}_{inference_type}"
 data_dir = os.path.join(output_dir, env_inference)
+
+feature_mask = [0, 1, 7, 35, 2]
+
 batch_size = 32
-epochs = 60
+epochs = 40
 learning_rate = 0.001
 test_split_ratio = 0.2
 apply_normalization = True
-apply_l1_reg = True 
+apply_l1_reg = False 
 
 config_path = os.path.join('../configs', f"{env_name}.json")
 with open(config_path, 'r') as f:
@@ -45,8 +48,13 @@ if apply_normalization:
     std = conditions.std(0)
     conditions = (conditions - mean) / (std + 1e-6)
 
+if feature_mask is not None:
+    conditions = conditions[:, feature_mask]
+
 conditions_tensor = torch.tensor(conditions, dtype=torch.float32)
 labels_tensor = torch.tensor(labels, dtype=torch.long)
+
+
 
 chunk_indices = []
 start_idx = 0
@@ -77,8 +85,7 @@ class MLPClassifier(nn.Module):
         self.apply_l1_reg = apply_l1_reg
         
         if self.apply_l1_reg:
-            self.identity_layer = nn.Linear(input_size, input_size, bias=False)  # Identity layer
-            nn.init.ones_(self.identity_layer.weight)  # Initialize with ones
+            self.identity_weights = nn.Parameter(torch.ones(input_size))
 
         self.model = nn.Sequential(
             nn.Linear(input_size, hidden_size),
@@ -90,7 +97,7 @@ class MLPClassifier(nn.Module):
 
     def forward(self, x):
         if self.apply_l1_reg:
-            x = self.identity_layer(x) 
+            x = x * self.identity_weights
         return self.model(x)
 
 
@@ -115,7 +122,7 @@ def train_model():
             loss = criterion(outputs, batch_labels)
 
             if apply_l1_reg:
-                l1_loss = lambda_l1 * torch.norm(model.identity_layer.weight, p=1)
+                l1_loss = lambda_l1 * torch.norm(model.identity_weights, p=1)
                 loss += l1_loss
 
             optimizer.zero_grad()
@@ -145,15 +152,16 @@ def evaluate_model():
     accuracy = correct / total
     print(f"Test Accuracy: {accuracy * 100:.2f}%")
 
-def print_most_important_features():
-    if apply_l1_reg:
-        importance_weights = model.identity_layer.weight.detach().cpu().numpy().flatten()
-        sorted_indices = np.argsort(-np.abs(importance_weights))  # Sort by absolute value
-        print("\nTop 10 Most Important Features:")
-        for i in sorted_indices[:10]:  # Show top 10 features
-            print(f"Feature {i}: Weight {importance_weights[i]:.4f}")
+
 
 train_model()
 evaluate_model()
 
-print_most_important_features()
+
+if apply_l1_reg:
+    importance_weights = model.identity_weights.detach().cpu().numpy().flatten()
+    sorted_indices = np.argsort(-np.abs(importance_weights))  
+    print("\nTop 10 Most Important Features:")
+    for i in sorted_indices[:10]:
+        print(f"Feature {i}: Weight {importance_weights[i]:.4f}")
+
