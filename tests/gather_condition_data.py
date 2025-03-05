@@ -20,7 +20,7 @@ fix_seed(seed=0)
 subtract_baseline = False
 
 parser = argparse.ArgumentParser(description="Gather data for task inference evaluation")
-parser.add_argument('--env', type=str, default='HalfCheetah-v4',
+parser.add_argument('--env', type=str, default='Pendulum-v1',
                     choices=['HalfCheetah-v4', 'Pendulum-v1', 'Swimmer-v4', 'Reacher-v4', 'CartPole-v1', 'GoalReacher'],
                     help='Environment to use for data gathering.')
 parser.add_argument('--inference', type=str, default='sr',
@@ -56,7 +56,7 @@ if subtract_baseline:
     baseline_env = ConditionalStateWrapper(baseline_env, task_inference=task_inference)
 
     baseline_conditions = []
-    for _ in range(5):
+    for _ in range(n_tasks):
         obs, _ = baseline_env.reset()
         terminated, truncated = False, False
 

@@ -13,7 +13,7 @@ from general_utils import fix_seed
 fix_seed(seed=0)
 
 output_dir = "data"
-env_name = "HalfCheetah-v4"
+env_name = "Pendulum-v1"
 inference_type = "sr"
 
 env_inference =  f"{env_name}_{inference_type}"
