@@ -3,6 +3,6 @@
   "n_tasks": 4,
   "task_name": "gravity",
   "total_timesteps": 10000,
-  "context_size": 24,
+  "context_size": 30,
   "eval_freq": 50
 }

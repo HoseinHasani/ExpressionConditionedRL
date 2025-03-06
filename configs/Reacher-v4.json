@@ -3,6 +3,6 @@
   "n_tasks": 4,
   "task_name": "mass",
   "total_timesteps": 10000,
-  "context_size": 154,
+  "context_size": 168,
   "eval_freq": 50
 }

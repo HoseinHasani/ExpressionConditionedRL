@@ -3,7 +3,8 @@ import pysindy as ps
 from task_inference_utils.base_inference import BaseTaskInference
 
 class SymbolicRegressionInference(BaseTaskInference):
-    def __init__(self, context_size, feature_lib=None, optimizer=None, ensemble=True, residual=False):
+    def __init__(self, context_size, feature_lib=None, optimizer=None,
+                 ensemble=True, residual=True, use_rewards=True):
         """
         Initialize the Symbolic Regression Inference module.
         
@@ -12,12 +13,15 @@ class SymbolicRegressionInference(BaseTaskInference):
             feature_lib: Pysindy feature library. Defaults to PolynomialLibrary with degree 1.
             optimizer: Pysindy optimizer. Defaults to STLSQ.
             ensemble (bool): Whether to use an ensemble model. Defaults to True.
+            residual (bool): Whether to subtract the previous state from the target y.
+            use_rewards (bool): Whether to include rewards in the target vector y. Defaults to False.
         """
         super().__init__(context_size)
         self.feature_lib = feature_lib or ps.PolynomialLibrary(degree=1, include_bias=True)
         self.optimizer = optimizer or ps.STLSQ(threshold=0.02, alpha=0.15, verbose=False, max_iter=40)
         self.ensemble = ensemble
         self.residual = residual
+        self.use_rewards = use_rewards
 
     def infer_task(self, trajectory_buffer):
         if len(trajectory_buffer) < 5:
@@ -33,6 +37,10 @@ class SymbolicRegressionInference(BaseTaskInference):
         
         if self.residual:
             y_train = y_train - x_train
+            
+        if self.use_rewards: 
+            y_train = np.concatenate([y_train, np.array(rewards[1:]).reshape(-1, 1)], axis=1)
+
 
         model = ps.SINDy(discrete_time=True,
                          feature_library=self.feature_lib,
