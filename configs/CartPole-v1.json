@@ -1,8 +1,8 @@
 {
-  "max_ep_len": 1000,
+  "max_ep_len": 200,
   "n_tasks": 4,
   "task_name": "gravity",
   "total_timesteps": 10000,
-  "context_size": 12,
+  "context_size": 24,
   "eval_freq": 50
 }

@@ -1,8 +1,8 @@
 {
-  "max_ep_len": 500,
+  "max_ep_len": 400,
   "n_tasks": 4,
-  "task_name": "mass",
+  "task_name": "viscosity",
   "total_timesteps": 10000,
-  "context_size": 22,
+  "context_size": 88,
   "eval_freq": 50
 }

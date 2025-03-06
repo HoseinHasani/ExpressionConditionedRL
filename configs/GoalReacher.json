@@ -1,5 +1,5 @@
 {
-  "max_ep_len": 220,
+  "max_ep_len": 400,
   "n_tasks": 3,
   "task_name": "wind_power",
   "total_timesteps": 7000,

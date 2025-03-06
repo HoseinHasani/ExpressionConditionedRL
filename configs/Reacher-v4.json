@@ -1,8 +1,8 @@
 {
-  "max_ep_len": 1000,
+  "max_ep_len": 400,
   "n_tasks": 4,
-  "task_name": "dof",
+  "task_name": "mass",
   "total_timesteps": 10000,
-  "context_size": 28,
+  "context_size": 154,
   "eval_freq": 50
 }
