@@ -2,7 +2,7 @@ import gymnasium as gym
 import numpy as np
 
 class ConditionalStateWrapper(gym.ObservationWrapper):
-    def __init__(self, env, task_inference, trajectory_limit=100, inference_frequency=10, is_oracle=False):
+    def __init__(self, env, task_inference, trajectory_limit=50, inference_frequency=10, is_oracle=False):
         super().__init__(env)
         self.is_oracle = is_oracle
         self.task_inference = task_inference
@@ -22,6 +22,10 @@ class ConditionalStateWrapper(gym.ObservationWrapper):
             dtype=np.float32
         )
 
+    @property
+    def current_task(self):
+        return self.env.current_task
+    
     def observation(self, obs):
         return np.concatenate([obs, self.context])
 

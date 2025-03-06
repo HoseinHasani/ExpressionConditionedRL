@@ -27,7 +27,7 @@ class NonStationaryEnv(Wrapper):
         self.task_name = task_name
         self.env_name = env_name
         self.n_supervised_episodes = n_supervised_episodes
-        self.counter = 1
+        self.counter = 0
    
         self.h_winds = {0: np.array([0,0,0,0,0,0]), 1: np.array([10,0,0,0,0,0]),
          2: np.array([-10,0,0,0,0,0])}  
@@ -78,7 +78,8 @@ class NonStationaryEnv(Wrapper):
         return self.tasks[0]
 
     def step(self, action):
-
+        self.counter += 1
+        
         if self.env_name == "cartpole":
             if self.task_name == "gravity" or self.task_name == None:
                 # Gravity Task for cartpole
@@ -218,8 +219,7 @@ class NonStationaryEnv(Wrapper):
        
         next_obs, reward, terminated, done, info = self.env.step(action)
 
-       
-        self.counter += 1
+      
 
         return next_obs, reward, terminated, done, info
     
