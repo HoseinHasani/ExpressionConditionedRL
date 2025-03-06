@@ -20,7 +20,7 @@ fix_seed(seed=0)
 subtract_baseline = False
 
 parser = argparse.ArgumentParser(description="Gather data for task inference evaluation")
-parser.add_argument('--env', type=str, default='Reacher-v4',
+parser.add_argument('--env', type=str, default='Swimmer-v4',
                     choices=['HalfCheetah-v4', 'Pendulum-v1', 'Swimmer-v4', 'Reacher-v4', 'CartPole-v1', 'GoalReacher'],
                     help='Environment to use for data gathering.')
 parser.add_argument('--inference', type=str, default='sr',
@@ -28,7 +28,7 @@ parser.add_argument('--inference', type=str, default='sr',
                     help='Task inference method to use.')
 parser.add_argument('--output_dir', type=str, default='data',
                     help='Directory to save the gathered data.')
-parser.add_argument('--episodes', type=int, default=20, help='Number of episodes for data gathering.')
+# parser.add_argument('--episodes', type=int, default=32*8, help='Number of episodes for data gathering.')
 
 args = parser.parse_args()
 
@@ -43,6 +43,18 @@ context_size = config['context_size']
 
 output_path = os.path.join(args.output_dir, f"{args.env}_{args.inference}")
 os.makedirs(output_path, exist_ok=True)
+
+
+if args.env == 'Reacher-v4':
+    n_episodes = 132
+if args.env == 'HalfCheetah-v4':
+    n_episodes = 10
+if args.env == 'Swimmer-v4':
+    n_episodes = 9
+if args.env == 'Pendulum-v1':
+    n_episodes = 25
+if args.env == 'CartPole-v1':
+    n_episodes = 200
 
 if args.inference == 'simple':
     task_inference = SimpleTaskInference(context_size)
@@ -79,22 +91,37 @@ env = ConditionalStateWrapper(env, task_inference=task_inference)
 
 conditions = []
 labels = []
+counter = 0
+prev_task = 0
 
-for episode_id in range(args.episodes):
+for episode_id in range(n_episodes):
     print(f"{datetime.now()} - Gathering data for episode {episode_id}")
     obs, _ = env.reset()
     terminated = False
     truncated = False
-
+    steps = 0
     while not terminated and not truncated:
         action = env.action_space.sample()
         obs, reward, terminated, truncated, info = env.step(action)
+        steps += 1
         condition = info.get('context', None)
         if condition is not None:
-            condition = condition - baseline_vector  
-            conditions.append(condition)
-            labels.append(episode_id)
-
+            condition = condition - baseline_vector
+            cur_task = env.current_task
+            if cur_task == prev_task:
+                conditions.append(condition)
+                labels.append(cur_task)
+                prev_task = cur_task
+                counter = 0
+            else:
+                counter += 1
+                if counter > 25 or args.env == 'CartPole-v1':
+                    prev_task = cur_task
+                    
+        if steps > 600:
+            break
+                    
+    
 conditions = np.array(conditions)
 labels = np.array(labels)
 

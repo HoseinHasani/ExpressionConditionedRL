@@ -3,7 +3,7 @@ import pysindy as ps
 from task_inference_utils.base_inference import BaseTaskInference
 
 class SymbolicRegressionInference(BaseTaskInference):
-    def __init__(self, context_size, feature_lib=None, optimizer=None, ensemble=True, residual=True):
+    def __init__(self, context_size, feature_lib=None, optimizer=None, ensemble=True, residual=False):
         """
         Initialize the Symbolic Regression Inference module.
         
@@ -29,7 +29,7 @@ class SymbolicRegressionInference(BaseTaskInference):
 
         x_train = states[:-1]
         u_train = actions[:-1]
-        y_train = states[1:]# - states[:-1]
+        y_train = states[1:]
         
         if self.residual:
             y_train = y_train - x_train

@@ -14,13 +14,13 @@ from general_utils import fix_seed
 fix_seed(seed=0)
 
 output_dir = "data"
-env_name = "HalfCheetah-v4"
+env_name = ['HalfCheetah-v4', 'Pendulum-v1', 'Swimmer-v4', 'Reacher-v4', 'CartPole-v1', 'GoalReacher'][1]
 inference_type = "sr"
 
 env_inference = f"{env_name}_{inference_type}"
 data_dir = os.path.join(output_dir, env_inference)
 
-feature_mask = [0, 1, 7, 35, 2]
+feature_mask = None #[0, 1, 7, 35, 2]
 
 batch_size = 32
 epochs = 40
@@ -145,7 +145,6 @@ def evaluate_model():
 
             outputs = model(batch_conditions)
             _, predicted = torch.max(outputs, 1)
-
             total += batch_labels.size(0)
             correct += (predicted == batch_labels).sum().item()
 
