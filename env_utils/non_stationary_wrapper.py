@@ -27,7 +27,7 @@ class NonStationaryEnv(Wrapper):
         self.task_name = task_name
         self.env_name = env_name
         self.n_supervised_episodes = n_supervised_episodes
-        self.counter = 0
+        self.counter = 1
    
         self.h_winds = {0: np.array([0,0,0,0,0,0]), 1: np.array([10,0,0,0,0,0]),
          2: np.array([-10,0,0,0,0,0])}  
