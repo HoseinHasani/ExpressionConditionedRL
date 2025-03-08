@@ -14,13 +14,14 @@ from general_utils import fix_seed
 fix_seed(seed=0)
 
 output_dir = "data"
-env_name = ['HalfCheetah-v4', 'Pendulum-v1', 'Swimmer-v4', 'Reacher-v4', 'CartPole-v1', 'GoalReacher'][1]
+env_names = ['HalfCheetah-v4', 'Pendulum-v1', 'Swimmer-v4', 'Reacher-v4', 'CartPole-v1', 'GoalReacher']
+env_name = env_names[1]
 inference_type = "sr"
 
 env_inference = f"{env_name}_{inference_type}"
 data_dir = os.path.join(output_dir, env_inference)
 
-feature_mask = None #[0, 1, 7, 35, 2]
+feature_mask = None #[85, 2, 61, 64]
 
 batch_size = 32
 epochs = 40

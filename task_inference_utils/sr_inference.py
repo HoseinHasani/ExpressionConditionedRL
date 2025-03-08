@@ -31,6 +31,7 @@ class SymbolicRegressionInference(BaseTaskInference):
         states = np.array(states)
         actions = np.array(actions)
 
+
         x_train = states[:-1]
         u_train = actions[:-1]
         y_train = states[1:]
@@ -39,12 +40,13 @@ class SymbolicRegressionInference(BaseTaskInference):
             y_train = y_train - x_train
             
         if self.use_rewards: 
+            rewards = np.array(rewards)
             if self.residual:
                 reward_vec = rewards[1:] - rewards[:-1]
             else:
                 reward_vec = rewards[1:]
                 
-            y_train = np.concatenate([y_train, np.array(reward_vec).reshape(-1, 1)], axis=1)
+            y_train = np.concatenate([y_train, reward_vec.reshape(-1, 1)], axis=1)
 
 
         model = ps.SINDy(discrete_time=True,

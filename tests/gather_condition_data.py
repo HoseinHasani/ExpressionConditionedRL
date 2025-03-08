@@ -20,7 +20,7 @@ fix_seed(seed=0)
 subtract_baseline = False
 
 parser = argparse.ArgumentParser(description="Gather data for task inference evaluation")
-parser.add_argument('--env', type=str, default='Swimmer-v4',
+parser.add_argument('--env', type=str, default='Pendulum-v1',
                     choices=['HalfCheetah-v4', 'Pendulum-v1', 'Swimmer-v4', 'Reacher-v4', 'CartPole-v1', 'GoalReacher'],
                     help='Environment to use for data gathering.')
 parser.add_argument('--inference', type=str, default='sr',
@@ -55,6 +55,8 @@ if args.env == 'Pendulum-v1':
     n_episodes = 25
 if args.env == 'CartPole-v1':
     n_episodes = 200
+if args.env == 'GoalReacher':
+    n_episodes = 20
 
 if args.inference == 'simple':
     task_inference = SimpleTaskInference(context_size)
